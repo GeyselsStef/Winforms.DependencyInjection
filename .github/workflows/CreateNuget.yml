@@ -1,0 +1,25 @@
+name: Create Nuget
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .Net Core
+      uses: actions/setup-dotnet@v1
+    - name: Create Nuget Package
+      run: dotnet pack -c Release /p:Version=${{ github.event.release.tag_name }} /p:PackageReleaseNotes="See https://github.com/GeyselsStef/Winforms.DependencyInjection/releases/tag/${{ github.event.release.tag_name }}"
+      working-directory: ./Source/Winforms.DependencyInjection/WinformsHost
+    - name: Archive Nuget Package
+      uses: actions/upload-artifact@v1
+      with:
+        name: WinformsHost
+        path: .\Source\Winforms.DependencyInjection\WinformsHost\bin\Release\WinformsHost.${{ github.event.release.tag_name }}.nupkg
+
+    - name: Publish Nuget Package
+      run: dotnet nuget push **/*.nupkg --api-key ${{ secrets.NUGET_API }} --source http://api.nuget.org/v3/index.json

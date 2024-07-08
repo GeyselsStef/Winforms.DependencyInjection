@@ -19,4 +19,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: packages
-        path: "**/*.nupkg"
+        path: .\Source\Winforms.DependencyInjection\WinformsHost\bin\Release\WinformsHost.${{ github.event.release.tag_name }}.nupkg

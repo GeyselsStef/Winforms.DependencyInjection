@@ -6,14 +6,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-2019
 
     steps:
     - uses: actions/checkout@v2
     - name: Setup .Net Core
       uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '3.1.x'
     - name: Create Nuget Package
       run: dotnet pack -c Release /p:Version=${{ github.event.release.tag_name }} /p:PackageReleaseNotes="See https://github.com/GeyselsStef/Winforms.DependencyInjection/releases/tags/${{ github.event.release.tag_name }}"
       working-directory: ./Source/Winforms.DependencyInjection/WinformsHost

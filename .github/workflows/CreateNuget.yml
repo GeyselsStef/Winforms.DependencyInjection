@@ -16,7 +16,7 @@ jobs:
         dotnet-version: '3.1.x'
     - name: Create Nuget Package
       run: dotnet pack -c Release /p:Version=${{ github.event.release.tag_name }} /p:PackageReleaseNotes="See https://github.com/GeyselsStef/Winforms.DependencyInjection/releases/tags/${{ github.event.release.tag_name }}"
-      working-directory: Source/WinformsHost
+      working-directory: ./Source/Winforms.DependencyInjection/WinformsHost
     - name: Archive Nuget Package
       uses: actions/upload-artifact@v1
       with:

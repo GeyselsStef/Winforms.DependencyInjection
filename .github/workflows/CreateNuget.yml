@@ -20,3 +20,6 @@ jobs:
       with:
         name: WinformsHost
         path: .\Source\Winforms.DependencyInjection\WinformsHost\bin\Release\WinformsHost.${{ github.event.release.tag_name }}.nupkg
+
+    - name: Publish Nuget Package
+      run: dotnet nuget push **/*.nupkg --api-key ${{ secrets.NUGET_API }} --source http://api.nuget.org/v3/index.json

@@ -34,7 +34,7 @@ jobs:
       run: nuget restore ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj
 
     - name: Build project
-      run: msbuild ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj /p:Configuration=Release
+      run: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj /p:Configuration=Release'
 
     - name: Create Nuget Package
       run: nuget pack ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj -Properties Configuration=Release -Version ${{ steps.determine_version.outputs.version }} -OutputDirectory ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release

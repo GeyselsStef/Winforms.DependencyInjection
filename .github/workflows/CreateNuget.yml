@@ -3,23 +3,58 @@ name: Create Nuget
 on:
   release:
     types: [published]
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
   build:
     runs-on: windows-2019
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .Net Core
-      uses: actions/setup-dotnet@v1
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Fetch all tags
+      run: git fetch --tags
+
+    - name: Get latest tag
+      id: get_latest_tag
+      run: echo "::set-output name=tag::$(git describe --tags $(git rev-list --tags --max-count=1))"
+
+    - name: Determine version
+      id: determine_version
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" = "release" ]; then
+          echo "::set-output name=version::${{ github.event.release.tag_name }}"
+        else
+          echo "::set-output name=version::${{ steps.get_latest_tag.outputs.tag }}"
+        fi
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+
+    - name: Restore NuGet packages
+      run: nuget restore ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj
+
+    - name: Build project
+      run: |
+        & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj /p:Configuration=Release
+      shell: pwsh
+
     - name: Create Nuget Package
-      run: dotnet pack -c Release /p:Version=${{ github.event.release.tag_name }} /p:PackageReleaseNotes="See https://github.com/GeyselsStef/Winforms.DependencyInjection/releases/tag/${{ github.event.release.tag_name }}"
-      working-directory: ./Source/Winforms.DependencyInjection/WinformsHost
+      run: |
+        & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj /t:pack /p:Configuration=Release /p:Version=${{ steps.determine_version.outputs.version }} /p:PackageOutputPath=./bin/Release
+      shell: pwsh
+
+    - name: Debug output
+      run: |
+        ls -R ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release/
+
     - name: Archive Nuget Package
       uses: actions/upload-artifact@v1
       with:
         name: WinformsHost
-        path: .\Source\Winforms.DependencyInjection\WinformsHost\bin\Release\DDDSoft.Winforms.WinformsHost.${{ github.event.release.tag_name }}.nupkg
+        path: ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release/DDDSoft.Winforms.WinformsHost.${{ steps.determine_version.outputs.version }}.nupkg
 
     - name: Publish Nuget Package
-      run: dotnet nuget push **/*.nupkg --api-key ${{ secrets.NUGET_API }} --source http://api.nuget.org/v3/index.json
+      run: dotnet nuget push **/DDDSoft.Winforms.WinformsHost.${{ steps.determine_version.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API }} --source https://api.nuget.org/v3/index.json

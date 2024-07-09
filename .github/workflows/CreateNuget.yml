@@ -57,4 +57,4 @@ jobs:
         path: ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release/DDDSoft.Winforms.WinformsHost.${{ steps.determine_version.outputs.version }}.nupkg
 
     - name: Publish Nuget Package
-      run: dotnet nuget push **/DDDSoft.Winforms.WinformsHost.${{ steps.determine_version.outputs.version }}.nupkg -ApiKey ${{ secrets.NUGET_API_KEY }} -Source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push **/DDDSoft.Winforms.WinformsHost.${{ steps.determine_version.outputs.version }}.nupkg -ApiKey ${{ secrets.NUGET_API }} -Source https://api.nuget.org/v3/index.json

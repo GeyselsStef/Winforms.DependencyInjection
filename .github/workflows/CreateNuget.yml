@@ -46,6 +46,10 @@ jobs:
         & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj /t:pack /p:Configuration=Release /p:Version=${{ steps.determine_version.outputs.version }} /p:PackageOutputPath=./bin/Release
       shell: pwsh
 
+    - name: Debug output
+      run: |
+        ls -R ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release/
+
     - name: Archive Nuget Package
       uses: actions/upload-artifact@v1
       with:

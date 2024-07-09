@@ -5,6 +5,13 @@
     <RootNamespace>DDDSoft.Windows.Winforms</RootNamespace>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
+    <PackageId>DDDSoft.Winforms.$(AssemblyName)</PackageId>
+    <Title>WinformsHost enabeling DependencyInjection in Winforms</Title>
+    <Authors>DDDSoft</Authors>
+    <Description>This Host with builder simplifies and enables dependency Injection in Wilforms. 
+It provide a build-in navigation system that allows to create and show forms from the Serviceprovider and thus make it possible to use constructor injection.</Description>
+    <PackageProjectUrl>https://github.com/GeyselsStef/Winforms.DependencyInjection</PackageProjectUrl>
+    <PackageTags>Winforms;Host;Dependency;Injection</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

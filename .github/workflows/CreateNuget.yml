@@ -43,7 +43,7 @@ jobs:
 
     - name: Create Nuget Package
       run: |
-        & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj /t:pack /p:Configuration=Release /p:Version=${{ steps.determine_version.outputs.version }} /p:PackageOutputPath=./Source/Winforms.DependencyInjection/WinformsHost/bin/Release
+        & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj /t:pack /p:Configuration=Release /p:Version=${{ steps.determine_version.outputs.version }} /p:PackageOutputPath=./bin/Release
       shell: pwsh
 
     - name: Archive Nuget Package

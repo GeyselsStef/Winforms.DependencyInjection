@@ -42,7 +42,7 @@ jobs:
       shell: pwsh
 
     - name: Create Nuget Package
-      run: donet pack ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj -Properties Configuration=Release -Version ${{ steps.determine_version.outputs.version }} -OutputDirectory ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release
+      run: dotnet pack ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj -Properties Configuration=Release -Version ${{ steps.determine_version.outputs.version }} -OutputDirectory ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release
 
     - name: Archive Nuget Package
       uses: actions/upload-artifact@v1

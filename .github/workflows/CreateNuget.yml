@@ -54,7 +54,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: WinformsHost
-        path: ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release/*.nupkg
+        path: ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release/DDDSoft.Winforms.WinformsHost.${{ steps.determine_version.outputs.version }}.nupkg
 
     - name: Publish Nuget Package
-      run: nuget push ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release/*.nupkg -ApiKey ${{ secrets.NUGET_API_KEY }} -Source https://api.nuget.org/v3/index.json
+      run: nuget push ./Source/Winforms.DependencyInjection/WinformsHost/bin/Release/DDDSoft.Winforms.WinformsHost.${{ steps.determine_version.outputs.version }}.nupkg -ApiKey ${{ secrets.NUGET_API_KEY }} -Source https://api.nuget.org/v3/index.json

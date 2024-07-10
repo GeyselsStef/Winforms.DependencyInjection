@@ -13,9 +13,21 @@ namespace DDDSoft.Windows.Winforms.Extensions
             navigatorConfiguration.AddMainForm(typeof(TMainForm));
         }
 
-        public static void AddMainForm(this FormNavigatorConfiguration navigatorConfiguration, Type mainFormType) 
+        public static void AddMainForm(this FormNavigatorConfiguration navigatorConfiguration, Type mainFormType)
         {
             navigatorConfiguration.AddForm(mainFormType, new FormConfiguration() { IsMainForm = true });
+        }
+
+        public static void AddForm<TForm>(this FormNavigatorConfiguration navigatorConfiguration, FormConfiguration? configuration) where TForm : Form
+        {
+            navigatorConfiguration.AddForm(typeof(TForm), configuration);
+        }
+
+        public static void AddForm<TForm>(this FormNavigatorConfiguration navigatorConfiguration, Action<FormConfiguration> config) where TForm : Form
+        {
+            var configuration = new FormConfiguration();
+            config(configuration);
+            navigatorConfiguration.AddForm(typeof(TForm), configuration.Clone());
         }
 
         public static void AddForms(this FormNavigatorConfiguration navigatorConfiguration, Assembly[] assemblies, FormConfiguration? configuration)

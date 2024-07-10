@@ -1,4 +1,5 @@
-﻿using DDDSoft.Windows.Winforms.Exceptions;
+﻿using DDDSoft.Windows.Winforms.Abstraction;
+using DDDSoft.Windows.Winforms.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace DDDSoft.Windows.Winforms.Navigation
     {
         private readonly IServiceProvider _serviceProvider;
 
-        private FormNavigatorConfiguration _configuration;
+        internal readonly FormNavigatorConfiguration _configuration;
 
         public FormNavigator(IServiceProvider serviceProvider, FormNavigatorConfiguration configuration)
         {
@@ -47,8 +48,10 @@ namespace DDDSoft.Windows.Winforms.Navigation
                 throw new FormNotFoundException(formType);
             }
 
-            form.WindowState = _configuration.WindowState;
-            form.StartPosition = _configuration.StartPosition;
+            _configuration.Configurations.TryGetValue(formType, out FormConfiguration? formConfiguration);
+
+            form.WindowState = formConfiguration?.FormWindowState ?? _configuration.WindowState;
+            form.StartPosition = formConfiguration?.FormStartPosition ?? _configuration.StartPosition;
 
             if (form.Visible && !asDialog.GetValueOrDefault(!_configuration.AsDialog))
             {
@@ -73,11 +76,5 @@ namespace DDDSoft.Windows.Winforms.Navigation
 
             return form;
         }
-    }
-
-    public interface IFormNavigator
-    {
-        Form? GetForm(Type formType, bool? allowMultiple = false);
-        Form ShowForm(Type formType, bool? asDialog = false, bool? allowMultiple = false);
     }
 }

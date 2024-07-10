@@ -1,6 +1,5 @@
 ﻿using DDDSoft.Windows.Winforms.Abstraction;
 using DDDSoft.Windows.Winforms.Exceptions;
-using DDDSoft.Windows.Winforms.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;

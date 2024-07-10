@@ -1,12 +1,29 @@
-﻿using System.Windows.Forms;
+﻿using DDDSoft.Windows.Winforms.Abstraction;
+using System.Windows.Forms;
+using WinformsTestApp.Forms;
+using DDDSoft.Windows.Winforms.Extensions;
 
 namespace WinformsTestApp
 {
     public partial class Form1 : Form
     {
-        public Form1()
+        private readonly IFormNavigator _formNavigator;
+
+        public Form1(IFormNavigator formNavigator)
         {
+            _formNavigator = formNavigator;
+
             InitializeComponent();
+        }
+
+        private void ButtonOpenTestForm1_Click(object sender, System.EventArgs e)
+        {
+            _formNavigator.ShowForm<TestForm>();
+        }
+
+        private void ButtonOpenTestForm2_Click(object sender, System.EventArgs e)
+        {
+            DialogResult result = _formNavigator.ShowDialog<DialogForm>();
         }
     }
 }

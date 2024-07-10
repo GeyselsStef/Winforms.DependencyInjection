@@ -23,7 +23,7 @@ namespace DDDSoft.Windows.Winforms.Navigation
         public bool AllowMultiple { get; set; }
         public bool AsDialog { get; set; }
         public FormWindowState WindowState { get; set; } = FormWindowState.Normal;
-        public FormStartPosition StartPosition { get; set; } = FormStartPosition.CenterScreen;
+        public FormStartPosition StartPosition { get; set; } = FormStartPosition.WindowsDefaultLocation;
 
         public FormNavigatorConfiguration()
         {

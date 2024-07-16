@@ -1,136 +1,85 @@
 ﻿using DDDSoft.Windows.Winforms.Abstraction;
+using DDDSoft.Windows.Winforms.Extensions;
 using DDDSoft.Windows.Winforms.Navigation;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.Metrics;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace DDDSoft.Windows.Winforms.Hosting
 {
-    public class WinformsHostBuilder : Microsoft.Extensions.Hosting.HostBuilder, IWinformsHostBuilder
+    public class WinformsHostApplicationBuilder : IWinformsHostApplicationBuilder
     {
-        private Action<FormNavigatorConfiguration> _formNavigatorConfiguration = FormNavigatorConfiguration.DefaultConfiguration;
-        private Action<IApplicationConfiguration> _applicationConfiguration = ApplicationConfiguration.DefaultConfiguration;
+        private IHostApplicationBuilder _applicationBuilder;
+        private IFormNavigatorBuilder _formNavigatorBuilder;
+        private IApplicationConfigurationBuilder _applicationConfigurationBuilder;
 
-        public WinformsHostBuilder() : base() { }
+        public IDictionary<object, object> Properties => _applicationBuilder.Properties;
 
-        public IWinformsHostBuilder ConfigureServices(Action<IServiceCollection> configureDelegate)
+        public IConfigurationManager Configuration => _applicationBuilder.Configuration;
+
+        public IHostEnvironment Environment => _applicationBuilder.Environment;
+
+        public ILoggingBuilder Logging => _applicationBuilder.Logging;
+
+        public IMetricsBuilder Metrics => _applicationBuilder.Metrics;
+
+        public IFormNavigatorBuilder FormNavigator => _formNavigatorBuilder;
+
+        public IApplicationConfigurationBuilder ApplicationConfiguration => _applicationConfigurationBuilder;
+
+        public IServiceCollection Services => _applicationBuilder.Services;
+
+
+        public WinformsHostApplicationBuilder(string[]? args)
         {
-            base.ConfigureServices((_, x) => configureDelegate(x));
-            return this;
+            _applicationBuilder = new HostApplicationBuilder(args);
+            _formNavigatorBuilder = new FormNavigatorBuilder();
+            _applicationConfigurationBuilder = new ApplicationConfigurationBuilder();
         }
 
-        public new IWinformsHost Build()
+        public WinformsHostApplicationBuilder(HostApplicationBuilderSettings? settings)
         {
-
-            ConfigureServices((services) =>
-            {
-                AddWinformsHost(services);
-                AddFormNavigator(services);
-            });
-
-
-            IHost host = base.Build();
-            return host.Services.GetRequiredService<IWinformsHost>();
+            _applicationBuilder = new HostApplicationBuilder(settings);
+            _formNavigatorBuilder = new FormNavigatorBuilder();
+            _applicationConfigurationBuilder = new ApplicationConfigurationBuilder();
         }
 
-        private void AddWinformsHost(IServiceCollection services)
+        public WinformsHostApplicationBuilder(HostApplicationBuilderSettings? settings, bool empty)
         {
-            if (_applicationConfiguration == null)
+            ConstructorInfo ci = typeof(HostApplicationBuilder).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single(x => x.GetParameters().Count() == 2);
+#pragma warning disable CS8601 // Possible null reference assignment.
+            HostApplicationBuilder builder = (HostApplicationBuilder)ci.Invoke(new object[] { settings, empty });
+#pragma warning restore CS8601 // Possible null reference assignment.
+            _applicationBuilder = builder;
+            _formNavigatorBuilder = new FormNavigatorBuilder();
+            _applicationConfigurationBuilder = new ApplicationConfigurationBuilder();
+        }
+
+
+        public void ConfigureContainer<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory, Action<TContainerBuilder>? configure = null) where TContainerBuilder : notnull
+        {
+            _applicationBuilder.ConfigureContainer(factory, configure);
+        }
+
+        public IWinformsHost Build()
+        {
+            ServiceLifetime defaultServiceLifetime = _formNavigatorBuilder.Configuration.DefaultFormConfiguration?.LifeTime ?? ServiceLifetime.Transient;
+            foreach (var c in _formNavigatorBuilder.Configuration.Configurations)
             {
-                _applicationConfiguration = ApplicationConfiguration.DefaultConfiguration;
+                Services.TryAdd(new ServiceDescriptor(c.Key, c.Key, c.Value?.LifeTime ?? defaultServiceLifetime));
             }
-            services.AddSingleton<IWinformsHost>(x => ActivatorUtilities.CreateInstance<WinformsHost>(x, new[] { _applicationConfiguration }));
 
-        }
+            Services.TryAddSingleton<IFormNavigator>(x => ActivatorUtilities.CreateInstance<FormNavigator>(x, (FormNavigatorConfiguration)_formNavigatorBuilder.Configuration));
 
-        private void AddFormNavigator(IServiceCollection services)
-        {
-            if (_formNavigatorConfiguration == null)
-            {
-                _formNavigatorConfiguration = FormNavigatorConfiguration.DefaultConfiguration;
-            }
-
-            FormNavigatorConfiguration configuration = new FormNavigatorConfiguration();
-
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-            _formNavigatorConfiguration.Invoke(configuration);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
-
-            foreach (var config in configuration.Configurations)
-            {
-                ServiceLifetime lifetime = config.Value?.LifeTime ?? configuration.DefaultFormConfiguration?.LifeTime ?? ServiceLifetime.Transient;
-                services.Add(new ServiceDescriptor(config.Key, config.Key, lifetime));
-            }
-
-            services.AddSingleton<IFormNavigator>(x => new FormNavigator(x, configuration));
-
-        }
-
-        public IWinformsHostBuilder ConfigureFormNavigator(Action<FormNavigatorConfiguration> configureDelegate)
-        {
-            _formNavigatorConfiguration = configureDelegate;
-            return this;
-        }
-
-        public IWinformsHostBuilder ConfigureApplication(Action<IApplicationConfiguration> configureDelegate)
-        {
-            _applicationConfiguration = configureDelegate;
-            return this;
-        }
-    }
-
-    public class ApplicationConfiguration : IApplicationConfiguration
-    {
-        public static Action<IApplicationConfiguration> DefaultConfiguration => x => { };
-
-        internal bool _enableVisualStyles = false;
-        internal bool _setCompatibleTextRenderingDefault = true;
-        internal UnhandledExceptionMode _setUnhandledExceptionMode = UnhandledExceptionMode.ThrowException;
-        internal EventHandler<ThreadExceptionEventArgs>? _threadExceptions;
-        internal EventHandler<UnhandledExceptionEventArgs>? _unhandledExceptions;
-        internal Type? _splashScreenType;
-
-        public IApplicationConfiguration EnableVisualStyles(bool value = true)
-        {
-            _enableVisualStyles = value;
-            return this;
-        }
-
-        public IApplicationConfiguration SetCompatibleTextRenderingDefault(bool value = true)
-        {
-            _setCompatibleTextRenderingDefault = value;
-            return this;
-        }
-
-        public IApplicationConfiguration SetUnhandledExceptionMode(UnhandledExceptionMode mode = UnhandledExceptionMode.CatchException)
-        {
-            _setUnhandledExceptionMode = mode;
-            return this;
-        }
-
-        public IApplicationConfiguration ThreadExceptions(EventHandler<ThreadExceptionEventArgs> handler)
-        {
-            _threadExceptions = handler;
-            return this;
-        }
-
-        public IApplicationConfiguration UnhandledException(EventHandler<UnhandledExceptionEventArgs> handler)
-        {
-            if (handler != null)
-            {
-                SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-            }
-            _unhandledExceptions = handler;
-            return this;
-        }
-
-        public IApplicationConfiguration UseSplashScreen<T>() where T : Form
-        {
-            _splashScreenType = typeof(T);
-            return this;
+            var host = ((HostApplicationBuilder)_applicationBuilder).Build();
+            return new WinformsHost(host,_applicationConfigurationBuilder.Build());
         }
     }
 }

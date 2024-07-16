@@ -1,11 +1,7 @@
 ﻿using DDDSoft.Windows.Winforms.Abstraction;
 using DDDSoft.Windows.Winforms.Exceptions;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DDDSoft.Windows.Winforms.Navigation
@@ -48,10 +44,10 @@ namespace DDDSoft.Windows.Winforms.Navigation
                 throw new FormNotFoundException(formType);
             }
 
-            _configuration.Configurations.TryGetValue(formType, out FormConfiguration? formConfiguration);
+            ((IFormNavigatorConfiguration)_configuration).Configurations.TryGetValue(formType, out FormConfiguration? formConfiguration);
 
-            form.WindowState = formConfiguration?.FormWindowState ?? _configuration.WindowState;
-            form.StartPosition = formConfiguration?.FormStartPosition ?? _configuration.StartPosition;
+            form.WindowState = formConfiguration?.WindowState ?? _configuration.WindowState;
+            form.StartPosition = formConfiguration?.StartPosition ?? _configuration.StartPosition;
 
             if (form.Visible && !asDialog.GetValueOrDefault(!_configuration.AsDialog))
             {

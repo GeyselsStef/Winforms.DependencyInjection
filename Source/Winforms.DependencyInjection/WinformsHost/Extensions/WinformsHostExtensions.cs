@@ -1,7 +1,7 @@
 ﻿using DDDSoft.Windows.Winforms.Abstraction;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+using DDDSoft.Windows.Winforms.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Windows.Forms;
 
 namespace DDDSoft.Windows.Winforms.Extensions
@@ -13,5 +13,26 @@ namespace DDDSoft.Windows.Winforms.Extensions
             winformsHost.Run(typeof(TForm));
         }
 
+        public static void Run(this IWinformsHost winformsHost, Type formType)
+        {
+            Form form = (Form)winformsHost.Services.GetRequiredService(formType);
+
+            if (winformsHost is WinformsHost host && host._configuration.HasSplashScreen)
+            {
+                EventHandler? eventHandler = default;
+                eventHandler = new EventHandler((sender, e) =>
+                {
+                    try
+                    {
+                        host._configuration.SplashScreen?.Close();
+                        form.Shown -= eventHandler;
+                    }
+                    catch (Exception) { }
+                });
+                form.Shown += eventHandler;
+            }
+
+            Application.Run(form);
+        }
     }
 }

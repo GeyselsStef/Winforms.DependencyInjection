@@ -1,0 +1,30 @@
+name: Build
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: # Allows manual triggering
+  pull_request:
+    branches:
+      - master
+      - deploy
+      - package
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+
+    - name: Restore NuGet packages
+      run: nuget restore ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj
+
+    - name: Build project
+      run: |
+        & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" ./Source/Winforms.DependencyInjection/WinformsHost/WinformsHost.csproj /p:Configuration=Release
+      shell: pwsh

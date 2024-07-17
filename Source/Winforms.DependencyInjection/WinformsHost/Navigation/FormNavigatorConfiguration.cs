@@ -1,34 +1,28 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DDDSoft.Windows.Winforms.Abstraction;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace DDDSoft.Windows.Winforms.Navigation
 {
-    public class FormNavigatorConfiguration
+    public class FormNavigatorConfiguration : IFormNavigatorConfiguration
     {
         private FormConfiguration? _mainForm;
         internal FormConfiguration? MainForm => _mainForm;
 
-        internal static Action<FormNavigatorConfiguration> DefaultConfiguration { get; } = x =>
-        {
-            x.DefaultFormConfiguration = new FormConfiguration() { LifeTime = ServiceLifetime.Transient };
-        };
-
-        public FormConfiguration? DefaultFormConfiguration { get; set; }
+        public FormConfiguration DefaultFormConfiguration { get; set; }
 
         public IDictionary<Type, FormConfiguration?> Configurations { get; } = new Dictionary<Type, FormConfiguration?>();
 
-        public bool AllowMultiple { get; set; }
-        public bool AsDialog { get; set; }
-        public FormWindowState WindowState { get; set; } = FormWindowState.Normal;
-        public FormStartPosition StartPosition { get; set; } = FormStartPosition.WindowsDefaultLocation;
+        public bool AllowMultiple { get; }
+        public bool AsDialog { get; }
+        public FormWindowState WindowState => DefaultFormConfiguration.WindowState ?? FormWindowState.Normal;
+        public FormStartPosition StartPosition => DefaultFormConfiguration.StartPosition ?? FormStartPosition.WindowsDefaultLocation;
 
         public FormNavigatorConfiguration()
         {
-            AllowMultiple = false;
-            AsDialog = false;
+            DefaultFormConfiguration = FormConfiguration.Default;
         }
 
         public void AddForm(Type formType, FormConfiguration? formConfiguration)
@@ -43,7 +37,7 @@ namespace DDDSoft.Windows.Winforms.Navigation
                 formConfiguration.FormType = formType;
                 formConfiguration.LifeTime = ServiceLifetime.Singleton;
                 _mainForm = formConfiguration;
-                Configurations.Add(formType, formConfiguration);
+                ((IFormNavigatorConfiguration)this).Configurations.Add(formType, formConfiguration);
 
             }
             else
@@ -63,23 +57,50 @@ namespace DDDSoft.Windows.Winforms.Navigation
                     formConfiguration.FormType = formType;
                 }
 
-                if (Configurations.ContainsKey(formType))
+                if (((IFormNavigatorConfiguration)this).Configurations.ContainsKey(formType))
                 {
-                    Configurations[formType] = formConfiguration;
+                    ((IFormNavigatorConfiguration)this).Configurations[formType] = formConfiguration;
                 }
                 else
                 {
-                    Configurations.Add(formType, formConfiguration);
+                    ((IFormNavigatorConfiguration)this).Configurations.Add(formType, formConfiguration);
                 }
             }
         }
 
-
-        public void AddForms(IEnumerable<Type> formTypes, FormConfiguration? formConfiguration)
+        public void TryAddForm(Type formType, FormConfiguration? formConfiguration)
         {
-            foreach (var formType in formTypes)
+            if (formConfiguration?.IsMainForm ?? false)
             {
-                AddForm(formType, formConfiguration);
+                if (_mainForm != null)
+                {
+                    return; // Ignore
+                }
+
+                formConfiguration.FormType = formType;
+                formConfiguration.LifeTime = ServiceLifetime.Singleton;
+                _mainForm = formConfiguration;
+                ((IFormNavigatorConfiguration)this).Configurations.Add(formType, formConfiguration);
+
+            }
+            else
+            {
+                if ((_mainForm != null && _mainForm.FormType == formType) || ((IFormNavigatorConfiguration)this).Configurations.ContainsKey(formType))
+                {
+                    return;
+                }
+
+                if (formConfiguration == null && DefaultFormConfiguration != null)
+                {
+                    formConfiguration = DefaultFormConfiguration.Clone();
+                }
+
+                if (formConfiguration != null)
+                {
+                    formConfiguration.FormType = formType;
+                }
+
+                ((IFormNavigatorConfiguration)this).Configurations.Add(formType, formConfiguration);
             }
         }
     }

@@ -35,13 +35,13 @@ namespace DDDSoft.Windows.Winforms.Extensions
             FormNavigator? navigator = formNavigator as FormNavigator;
             if (navigator != null)
             {
-                if (navigator._configuration.Configurations.TryGetValue(typeof(TForm), out FormConfiguration? frmConfiguration)
+                if (((IFormNavigatorConfiguration)navigator._configuration).Configurations.TryGetValue(typeof(TForm), out FormConfiguration? frmConfiguration)
                     && frmConfiguration !=null)
                 {
-                    if (frmConfiguration.FormWindowState.HasValue)
-                        form.WindowState = frmConfiguration.FormWindowState.Value;
-                    if (frmConfiguration.FormStartPosition.HasValue)
-                        form.StartPosition = frmConfiguration.FormStartPosition.Value;
+                    if (frmConfiguration.WindowState.HasValue)
+                        form.WindowState = frmConfiguration.WindowState.Value;
+                    if (frmConfiguration.StartPosition.HasValue)
+                        form.StartPosition = frmConfiguration.StartPosition.Value;
                 }
                 else
                 {
